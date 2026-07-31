@@ -1,134 +1,332 @@
-html,
+/* RESET Y FUENTES */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #1a1a2e;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
   user-select: none;
-  background: #323130;
+}
+
+#app {
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+}
+
+/* MARCADOR SUPERIOR */
+#scoreboard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  padding: 10px 20px;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  border: 1px solid #444;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.player-info.left { align-items: flex-start; }
+.player-info.right { align-items: flex-end; }
+.player-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255,215,0,0.3);
+}
+.player-balls {
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  color: #aaa;
+}
+.game-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.turn-indicator {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #4ecdc4;
+  background: rgba(78,205,196,0.15);
+  padding: 4px 16px;
+  border-radius: 20px;
+  border: 1px solid #4ecdc4;
+}
+.timer {
+  font-size: 0.9rem;
+  color: #f8b500;
   font-family: monospace;
-  font-size: 0.95em;
 }
 
-#room-status, #game-status {
-  user-select: text;
+/* CONTENEDOR DE LA MESA */
+#game-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #2a1f0e;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 20px 60px rgba(0,0,0,0.8);
+  border: 4px solid #5a3d1a;
+  position: relative;
 }
-
-.terminal {
-  display: block;
-  position: absolute;
+#game {
   width: 100%;
   height: 100%;
+  position: relative;
+  background: #1a3a1a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+#game .terminal {
+  width: 100%;
+  height: 100%;
+  display: block;
   touch-action: none;
 }
 
-.portrait.billiards {
-  transform: rotate(-90deg);
+/* LOBBY (se oculta al jugar) */
+.lobby {
+  background: #16213e;
+  border-radius: 20px;
+  padding: 40px;
+  margin-top: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  border: 1px solid #0f3460;
+  transition: opacity 0.5s ease;
 }
-
-.score {
-  font-size: 0.08em;
-  font-family: sans-serif;
-  font-weight: 900;
-  fill: #d7d1cb;
-  stroke: #514940;
-  stroke-width: 0.07;
-  text-anchor: start;
-  dominant-baseline: middle;
+.lobby.hidden { display: none; }
+.lobby h1 {
+  font-size: 3rem;
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
 }
-
-.table {
-  fill: #3b6d46;
+.lobby .subtitle { color: #aaa; margin-bottom: 30px; font-size: 1.1rem; }
+.lobby .balance { font-size: 1.5rem; margin-bottom: 20px; color: #4ecdc4; }
+.lobby .pot { font-size: 1.2rem; margin-bottom: 30px; color: #f8b500; }
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
 }
+.btn {
+  padding: 14px 32px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: #0f3460;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+.btn-primary { background: #e94560; }
+.btn-primary:hover { background: #c73e54; }
+.btn-success { background: #4ecdc4; color: #1a1a2e; }
+.btn-success:hover { background: #45b7aa; }
+.btn-warning { background: #f8b500; color: #1a1a2e; }
+.btn-warning:hover { background: #e0a300; }
+.status {
+  margin-top: 20px;
+  padding: 15px;
+  background: #0f3460;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  color: #aaa;
+  text-align: left;
+}
+.status-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.status-label { font-weight: bold; color: #888; min-width: 100px; }
+.status-value { color: #4ecdc4; font-weight: bold; word-break: break-all; }
 
+/* ========== ESTILOS DEL SVG (mesa, bolas, taco) ========== */
+.terminal { display: block; width: 100%; height: 100%; touch-action: none; }
+.portrait.billiards { transform: rotate(-90deg); }
+
+/* Mesa */
+.table { fill: #2e7d32; }
 .rail {
-  fill: #514940;
-  stroke: #2d2a27;
+  fill: #5a3d1a;
+  stroke: #3d2b12;
   stroke-width: 0.006;
   stroke-linejoin: round;
 }
-
 .pocket {
   fill: #1a1a1a;
-  stroke: #000000;
-  stroke-width: 0.006;
-}
-
-.cue {
-  stroke: black;
+  stroke: #000;
   stroke-width: 0.008;
+  rx: 0.02;
+  ry: 0.02;
+}
+
+/* Taco */
+.cue {
+  stroke: #8b6b4d;
+  stroke-width: 0.012;
   stroke-linecap: round;
-  stroke-dasharray: 0.02, 0.03;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
 }
 
+/* Bolas */
 .ball {
-  fill: white;
-  stroke: black;
-  stroke-width: 0.006;
-  transition: all 50ms;
+  stroke: #333;
+  stroke-width: 0.004;
+  transition: all 30ms;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
 }
+.ball.black { fill: #111; stroke: #ccc; }
+.ball.white { fill: #f0f0f0; stroke: #888; }
+.ball.yellow-solid { fill: #ffdd00; stroke: #b8860b; }
+.ball.yellow-stripe { fill: #ffdd00; stroke: #fff; }
+.ball.red-solid { fill: #ff3300; stroke: #8b0000; }
+.ball.red-stripe { fill: #ff3300; stroke: #fff; }
+.ball.burgundy-solid { fill: #8b0000; stroke: #4a0000; }
+.ball.burgundy-stripe { fill: #8b0000; stroke: #fff; }
+.ball.orange-solid { fill: #ff8800; stroke: #cc5500; }
+.ball.orange-stripe { fill: #ff8800; stroke: #fff; }
+.ball.green-solid { fill: #00bb11; stroke: #006400; }
+.ball.green-stripe { fill: #00bb11; stroke: #fff; }
+.ball.purple-solid { fill: #9900ff; stroke: #4b0082; }
+.ball.purple-stripe { fill: #9900ff; stroke: #fff; }
+.ball.blue-solid { fill: #0077ff; stroke: #00008b; }
+.ball.blue-stripe { fill: #0077ff; stroke: #fff; }
 
-.ball.black {
-  fill: #000000;
-  stroke: #ffffff;
+/* ========== CONTROLES FLOTANTES (fuerza, efecto, ajuste) ========== */
+.controls-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  pointer-events: none;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
-.ball.white {
-  fill: #ffffff;
-  stroke: #000000;
+.controls-group {
+  pointer-events: auto;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 12px 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
-.ball.yellow-solid {
-  fill: #ffdd00;
-  stroke: #000000;
+.controls-group label {
+  color: #aaa;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
-.ball.yellow-stripe {
-  fill: #ffdd00;
-  stroke: #ffffff;
+/* Barra de fuerza vertical */
+.power-slider {
+  width: 30px;
+  height: 150px;
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  background: linear-gradient(to top, #4ecdc4, #f7971e, #e94560);
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
 }
-.ball.red-solid {
-  fill: #ff3300;
-  stroke: #000000;
+.power-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 20px rgba(255,255,255,0.5);
+  cursor: grab;
 }
-.ball.red-stripe {
-  fill: #ff3300;
-  stroke: #ffffff;
+.power-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  cursor: grab;
 }
-.ball.burgundy-solid {
-  fill: #662200;
-  stroke: #000000;
+/* Joystick de efecto */
+.spin-joystick {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #1a1a2a;
+  border: 2px solid #555;
+  position: relative;
+  cursor: grab;
+  touch-action: none;
 }
-.ball.burgundy-stripe {
-  fill: #662200;
-  stroke: #ffffff;
+.spin-knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffd700;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 20px #ffd700;
 }
-.ball.orange-solid {
-  fill: #ff8800;
-  stroke: #000000;
+/* Botones de ajuste */
+.aim-buttons {
+  display: flex;
+  gap: 6px;
 }
-.ball.orange-stripe {
-  fill: #ff8800;
-  stroke: #ffffff;
+.aim-btn {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
 }
-.ball.green-solid {
-  fill: #00bb11;
-  stroke: #000000;
-}
-.ball.green-stripe {
-  fill: #00bb11;
-  stroke: #ffffff;
-}
-.ball.purple-solid {
-  fill: #9900ff;
-  stroke: #000000;
-}
-.ball.purple-stripe {
-  fill: #9900ff;
-  stroke: #ffffff;
-}
-.ball.blue-solid {
-  fill: #0077ff;
-  stroke: #000000;
-}
-.ball.blue-stripe {
-  fill: #0077ff;
-  stroke: #ffffff;
+.aim-btn:hover { background: #555; transform: scale(1.05); }
+.aim-btn:active { transform: scale(0.95); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  #scoreboard { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .player-name { font-size: 0.9rem; }
+  .player-balls { font-size: 1rem; }
+  .turn-indicator { font-size: 0.8rem; padding: 2px 12px; }
+  .controls-group { padding: 8px 4px; }
+  .power-slider { height: 100px; width: 24px; }
+  .spin-joystick { width: 60px; height: 60px; }
 }
