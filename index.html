@@ -1,115 +1,140 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>8 Ball Pool Pro</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { background-color: #121212; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; overflow: hidden; }
-
-    /* Canvas principal */
-    #game-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
-    canvas { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-
-    /* HUD Superior: Perfiles y Fichas */
-    #hud {
-      position: absolute; top: 15px; width: 90%; max-width: 800px;
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(20, 20, 20, 0.85); padding: 10px 20px; border-radius: 50px;
-      border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+    /* Reset y estilos base */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
     }
-    .player-profile { display: flex; align-items: center; gap: 10px; }
-    .avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; border: 2px solid #f39c12; }
-    .bet-container { background: #27ae60; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 14px; box-shadow: 0 0 10px rgba(39,174,96,0.4); }
-
-    /* Barra de Potencia (Izquierda) */
-    #power-bar-container {
-      position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
-      height: 250px; width: 35px; background: rgba(0,0,0,0.6);
-      border-radius: 20px; border: 2px solid #444; padding: 5px;
-      display: flex; flex-direction: column-reverse; align-items: center;
+    #app {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+      text-align: center;
     }
-    #power-bar-fill { width: 100%; height: 0%; background: linear-gradient(to top, #f1c40f, #e74c3c); border-radius: 15px; transition: height 0.05s linear; }
-
-    /* Rueda / Slider de Ajuste Milimétrico (Derecha) */
-    #fine-tune-container {
-      position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-      background: rgba(0,0,0,0.6); padding: 15px 10px; border-radius: 25px; border: 1px solid #444;
+    /* Estilos del lobby */
+    .lobby {
+      background: #16213e;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      border: 1px solid #0f3460;
     }
-    .tune-btn { background: #333; color: #fff; border: 1px solid #555; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; }
-    .tune-btn:active { background: #555; }
-
-    /* Menú Modal de Selección de Apuestas */
-    #lobby-modal {
-      position: absolute; inset: 0; background: rgba(0,0,0,0.85);
-      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; z-index: 100;
+    .lobby h1 {
+      font-size: 3rem;
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
     }
-    .modal-card { background: #1e1e1e; padding: 25px; border-radius: 15px; width: 320px; text-align: center; border: 1px solid #333; }
-    .bet-option { background: #2c3e50; margin: 10px 0; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: bold; }
-    .bet-option:hover { background: #34495e; border: 1px solid #f39c12; }
-    select, button { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; margin-top: 8px; cursor: pointer; }
-    .btn-primary { background: #f39c12; color: #000; }
+    .lobby .subtitle {
+      color: #aaa;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+    .lobby .balance {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #4ecdc4;
+    }
+    .lobby .pot {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      color: #f8b500;
+    }
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: #0f3460;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+    .btn-primary { background: #e94560; }
+    .btn-primary:hover { background: #c73e54; }
+    .btn-success { background: #4ecdc4; color: #1a1a2e; }
+    .btn-success:hover { background: #45b7aa; }
+    .btn-warning { background: #f8b500; color: #1a1a2e; }
+    .btn-warning:hover { background: #e0a300; }
+    .btn-secondary { background: #533483; }
+    .btn-secondary:hover { background: #452a6b; }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      background: #0f3460;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      color: #aaa;
+    }
+    .status .highlight {
+      color: #4ecdc4;
+      font-weight: bold;
+    }
+    /* Contenedor del juego - lo llenará el motor */
+    #game-container {
+      width: 100%;
+      height: 600px;
+      background: #0a0a1a;
+      border-radius: 16px;
+      margin-top: 20px;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid #0f3460;
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .lobby h1 { font-size: 2rem; }
+      .btn { padding: 12px 20px; font-size: 0.9rem; }
+      .button-group { gap: 10px; }
+    }
   </style>
 </head>
 <body>
-
-  <div id="game-container">
-    <!-- HUD Superior -->
-    <div id="hud">
-      <div class="player-profile">
-        <div class="avatar"></div>
-        <div>
-          <div id="player-name">Tú</div>
-          <small id="player-chips" style="color: #f1c40f;">1,000 Fichas</small>
-        </div>
+  <div id="app">
+    <div class="lobby" id="lobby">
+      <h1>🎱 8 Ball Pool Pro</h1>
+      <p class="subtitle">Juega con amigos o contra la máquina</p>
+      <div class="balance">💰 <span id="balance">1,000</span> Fichas</div>
+      <div class="pot">🏆 Bote: <span id="pot">$0</span></div>
+      <div class="button-group">
+        <button class="btn btn-primary" id="play-offline">🎮 Jugar Offline</button>
+        <button class="btn btn-success" id="create-room">🆕 Crear Sala</button>
+        <button class="btn btn-warning" id="join-room">🔗 Unirse a Sala</button>
       </div>
-      <div class="bet-container">Bote: $<span id="current-pot">0</span></div>
-      <div class="player-profile">
-        <div style="text-align: right;">
-          <div id="opponent-name">Esperando...</div>
-          <small id="opponent-status" style="color: #aaa;">Buscando rival</small>
-        </div>
-        <div class="avatar" style="border-color: #e74c3c;"></div>
+      <div class="status" id="status">
+        Estado: <span class="highlight" id="status-text">Esperando...</span>
       </div>
     </div>
-
-    <!-- Barra de Potencia (Izquierda) -->
-    <div id="power-bar-container">
-      <div id="power-bar-fill"></div>
-    </div>
-
-    <!-- Controles Milimétricos (Derecha) -->
-    <div id="fine-tune-container">
-      <button class="tune-btn" id="btn-tune-up">▲</button>
-      <span style="font-size: 10px; color: #aaa;">AJUSTE</span>
-      <button class="tune-btn" id="btn-tune-down">▼</button>
-    </div>
-
-    <!-- Modal de Lobby / Apuestas -->
-    <div id="lobby-modal">
-      <div class="modal-card">
-        <h2>Entrar a una Mesa</h2>
-        <p style="color: #888; font-size: 13px; margin-bottom: 15px;">Selecciona el valor de la apuesta</p>
-        
-        <div class="bet-option" onclick="selectBet(100)">Mesa Principiante - $100</div>
-        <div class="bet-option" onclick="selectBet(500)">Mesa Pro - $500</div>
-        <div class="bet-option" onclick="selectBet(2000)">Mesa Elite - $2,000</div>
-
-        <hr style="border: 0.5px solid #333; margin: 15px 0;">
-
-        <label style="font-size: 12px; color: #aaa;">¿No hay jugadores? Jugar contra Bot:</label>
-        <select id="bot-difficulty">
-          <option value="medium">Dificultad: Media</option>
-          <option value="hard">Dificultad: Difícil</option>
-        </select>
-        <button class="btn-primary" onclick="startBotGame()">Práctica vs Bot</button>
-      </div>
-    </div>
+    <div id="game-container"></div>
   </div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
+  <script type="module" src="/src/client.ts"></script>
 </body>
 </html>
