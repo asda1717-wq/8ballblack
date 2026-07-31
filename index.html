@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>8 Ball Pool Pro</title>
   <style>
-    /* Reset y estilos base */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,13 +22,16 @@
       padding: 20px;
       text-align: center;
     }
-    /* Estilos del lobby */
     .lobby {
       background: #16213e;
       border-radius: 20px;
       padding: 40px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
       border: 1px solid #0f3460;
+      transition: opacity 0.5s ease;
+    }
+    .lobby.hidden {
+      display: none;
     }
     .lobby h1 {
       font-size: 3rem;
@@ -78,6 +80,11 @@
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.5);
     }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
     .btn-primary { background: #e94560; }
     .btn-primary:hover { background: #c73e54; }
     .btn-success { background: #4ecdc4; color: #1a1a2e; }
@@ -98,8 +105,8 @@
       color: #4ecdc4;
       font-weight: bold;
     }
-    /* Contenedor del juego - lo llenará el motor */
-    #game-container {
+    /* Contenedor del juego */
+    #game {
       width: 100%;
       height: 600px;
       background: #0a0a1a;
@@ -108,12 +115,42 @@
       position: relative;
       overflow: hidden;
       border: 2px solid #0f3460;
+      display: none; /* Oculto hasta que comience el juego */
+    }
+    #game.active {
+      display: block;
     }
     /* Responsive */
     @media (max-width: 768px) {
       .lobby h1 { font-size: 2rem; }
       .btn { padding: 12px 20px; font-size: 0.9rem; }
       .button-group { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- LOBBY -->
+    <div class="lobby" id="lobby">
+      <h1>🎱 8 Ball Pool Pro</h1>
+      <p class="subtitle">Juega con amigos o contra la máquina</p>
+      <div class="balance">💰 <span id="balance">1,000</span> Fichas</div>
+      <div class="pot">🏆 Bote: <span id="pot">$0</span></div>
+      <div class="button-group">
+        <button class="btn btn-primary" id="play-offline">🎮 Jugar Offline</button>
+        <button class="btn btn-success" id="create-room">🆕 Crear Sala</button>
+        <button class="btn btn-warning" id="join-room">🔗 Unirse a Sala</button>
+      </div>
+      <div class="status" id="status">
+        Estado: <span class="highlight" id="status-text">Esperando...</span>
+      </div>
+    </div>
+    <!-- CONTENEDOR DEL JUEGO -->
+    <div id="game"></div>
+  </div>
+  <script type="module" src="/src/client.ts"></script>
+</body>
+</html>      .button-group { gap: 10px; }
     }
   </style>
 </head>
