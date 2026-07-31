@@ -8,8 +8,9 @@ export class CueShot extends Middleware<BilliardContext> {
   private spinX: number = 0;
   private spinY: number = 0;
   private aimAngle: number = 0;
-  private pointerStart: { x: number; y: number } | null = null;
-  private isAiming: boolean = false;
+  private isCharging: boolean = false;
+  private chargeStartTime: number = 0;
+  private chargeInterval: any;
 
   constructor() {
     super();
@@ -37,6 +38,7 @@ export class CueShot extends Middleware<BilliardContext> {
 
   handleDeactivate() {
     this.context.cue = null;
+    if (this.chargeInterval) clearInterval(this.chargeInterval);
   }
 
   private updateCueDirection() {
@@ -53,9 +55,7 @@ export class CueShot extends Middleware<BilliardContext> {
     const ball = this.context.balls?.find(b => b.color === "white");
     if (!ball) return;
 
-    this.pointerStart = point;
-    this.isAiming = true;
-
+    // Iniciar apuntado
     const cue = new CueStick();
     cue.ball = ball;
     cue.start.x = ball.position.x;
@@ -69,10 +69,36 @@ export class CueShot extends Middleware<BilliardContext> {
     }
     this.updateCueDirection();
     this.context.cue = cue;
+
+    // Iniciar carga de fuerza (mantener presionado)
+    this.isCharging = true;
+    this.chargeStartTime = Date.now();
+    this.force = 0; // empezar desde 0
+    this.emit("force-update", this.force);
+
+    // Actualizar fuerza en intervalo (simula la barra subiendo y bajando)
+    let increasing = true;
+    if (this.chargeInterval) clearInterval(this.chargeInterval);
+    this.chargeInterval = setInterval(() => {
+      if (!this.isCharging) return;
+      if (increasing) {
+        this.force += 0.02;
+        if (this.force >= 1) { this.force = 1; increasing = false; }
+      } else {
+        this.force -= 0.02;
+        if (this.force <= 0) { this.force = 0; increasing = true; }
+      }
+      // Redondear a 2 decimales
+      this.force = Math.round(this.force * 100) / 100;
+      this.emit("force-update", this.force);
+      // Actualizar el slider visual
+      const slider = document.querySelector('.power-slider') as HTMLInputElement;
+      if (slider) slider.value = String(this.force * 100);
+    }, 50);
   };
 
   handlePointerMove = (point: { x: number; y: number }) => {
-    if (!this.isAiming || !this.context.cue) return;
+    if (!this.context.cue) return;
     const cue = this.context.cue;
     const dx = point.x - cue.start.x;
     const dy = point.y - cue.start.y;
@@ -85,24 +111,45 @@ export class CueShot extends Middleware<BilliardContext> {
   };
 
   handlePointerUp = (point: { x: number; y: number }) => {
-    if (!this.isAiming || !this.context.cue) return;
-    this.isAiming = false;
+    if (!this.context.cue) return;
+    this.isCharging = false;
+    if (this.chargeInterval) {
+      clearInterval(this.chargeInterval);
+      this.chargeInterval = null;
+    }
+
     const cue = this.context.cue;
     const ball = cue.ball;
     const power = this.force * 15;
     const impulseX = this.direction.x * power;
     const impulseY = this.direction.y * power;
+
+    // Si la fuerza es muy baja, no disparar
+    if (this.force < 0.05) {
+      this.context.cue = null;
+      return;
+    }
+
     this.context.cue = null;
     this.emit("cue-shot", {
       ball: ball,
       shot: { x: impulseX, y: impulseY },
       spin: { x: this.spinX, y: this.spinY }
     });
+
+    // Resetear fuerza y spin
+    this.force = 0.5;
     this.spinX = 0;
     this.spinY = 0;
+    this.emit("force-update", this.force);
+    this.emit("spin-update", { x: 0, y: 0 });
+    const slider = document.querySelector('.power-slider') as HTMLInputElement;
+    if (slider) slider.value = "50";
+    const knob = document.querySelector('.spin-knob') as HTMLDivElement;
+    if (knob) { knob.style.top = "50%"; knob.style.left = "50%"; }
   };
 
   handleFrameLoop = () => {
-    // Mantenemos la lógica vacía, solo actualizamos en los eventos.
+    // Mantener actualización del taco
   };
-}
+          }
