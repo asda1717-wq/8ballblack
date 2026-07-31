@@ -1,13 +1,11 @@
 import { Middleware } from "polymatic";
 
 export class AdvancedControls extends Middleware {
-  // Valores actuales
   force: number = 0.5;
-  spinX: number = 0; // -1 a 1 (efecto lateral)
-  spinY: number = 0; // -1 a 1 (efecto adelante/atrás)
-  aimAngle: number = 0; // ajuste fino en radianes
+  spinX: number = 0;
+  spinY: number = 0;
+  aimAngle: number = 0;
 
-  // Elementos DOM
   private container: HTMLDivElement;
   private forceSlider: HTMLInputElement;
   private spinJoystick: HTMLDivElement;
@@ -23,7 +21,6 @@ export class AdvancedControls extends Middleware {
   }
 
   handleActivate = () => {
-    // Contenedor principal
     this.container = document.createElement("div");
     Object.assign(this.container.style, {
       position: "absolute",
@@ -53,12 +50,7 @@ export class AdvancedControls extends Middleware {
     });
     const forceLabel = document.createElement("span");
     forceLabel.textContent = "FUERZA";
-    Object.assign(forceLabel.style, {
-      color: "#fff",
-      fontSize: "10px",
-      fontWeight: "bold",
-      letterSpacing: "1px",
-    });
+    Object.assign(forceLabel.style, { color: "#fff", fontSize: "10px", fontWeight: "bold", letterSpacing: "1px" });
     this.forceSlider = document.createElement("input");
     this.forceSlider.type = "range";
     this.forceSlider.min = "0";
@@ -98,12 +90,7 @@ export class AdvancedControls extends Middleware {
     });
     const spinLabel = document.createElement("span");
     spinLabel.textContent = "EFECTO";
-    Object.assign(spinLabel.style, {
-      color: "#fff",
-      fontSize: "10px",
-      fontWeight: "bold",
-      letterSpacing: "1px",
-    });
+    Object.assign(spinLabel.style, { color: "#fff", fontSize: "10px", fontWeight: "bold", letterSpacing: "1px" });
     this.spinJoystick = document.createElement("div");
     Object.assign(this.spinJoystick.style, {
       width: "70px",
@@ -129,7 +116,6 @@ export class AdvancedControls extends Middleware {
       boxShadow: "0 0 10px #ffd700",
     });
     this.spinJoystick.appendChild(this.spinKnob);
-    // Eventos del joystick
     this.spinJoystick.addEventListener("pointerdown", this.onSpinStart);
     spinWrapper.appendChild(spinLabel);
     spinWrapper.appendChild(this.spinJoystick);
@@ -151,17 +137,9 @@ export class AdvancedControls extends Middleware {
     });
     const aimLabel = document.createElement("span");
     aimLabel.textContent = "AJUSTE";
-    Object.assign(aimLabel.style, {
-      color: "#fff",
-      fontSize: "10px",
-      fontWeight: "bold",
-      letterSpacing: "1px",
-    });
+    Object.assign(aimLabel.style, { color: "#fff", fontSize: "10px", fontWeight: "bold", letterSpacing: "1px" });
     const aimButtons = document.createElement("div");
-    Object.assign(aimButtons.style, {
-      display: "flex",
-      gap: "8px",
-    });
+    Object.assign(aimButtons.style, { display: "flex", gap: "8px" });
     this.aimLeftBtn = document.createElement("button");
     this.aimLeftBtn.textContent = "◀";
     Object.assign(this.aimLeftBtn.style, {
@@ -198,7 +176,6 @@ export class AdvancedControls extends Middleware {
     aimWrapper.appendChild(aimButtons);
     this.container.appendChild(aimWrapper);
 
-    // Agregar al contenedor del juego
     const game = document.getElementById("game");
     if (game) {
       game.style.position = "relative";
@@ -210,7 +187,6 @@ export class AdvancedControls extends Middleware {
     this.container?.remove();
   };
 
-  // --- Manejadores del joystick de spin ---
   private onSpinStart = (e: PointerEvent) => {
     this.spinDragging = true;
     this.spinJoystick.setPointerCapture(e.pointerId);
@@ -230,7 +206,6 @@ export class AdvancedControls extends Middleware {
     this.spinJoystick.removeEventListener("pointermove", this.onSpinMove);
     this.spinJoystick.removeEventListener("pointerup", this.onSpinEnd);
     this.spinJoystick.removeEventListener("pointercancel", this.onSpinEnd);
-    // Reiniciar spin a cero
     this.spinX = 0;
     this.spinY = 0;
     this.spinKnob.style.top = "50%";
