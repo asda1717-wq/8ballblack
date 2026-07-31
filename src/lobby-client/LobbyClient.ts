@@ -8,10 +8,6 @@ import { isValidRoomId, normalizeRoomId } from "../lobby/RoomId";
 export interface LobbyClientContext {}
 
 export class LobbyClient extends Middleware<LobbyClientContext> {
-  playOfflineButton: HTMLElement | null = null;
-  createRoomButton: HTMLElement | null = null;
-  joinRoomButton: HTMLElement | null = null;
-
   io: Socket;
   room: MainOffline | MainClient | null = null;
 
@@ -21,89 +17,95 @@ export class LobbyClient extends Middleware<LobbyClientContext> {
   }
 
   handleActivate() {
-    // 1. Conectar eventos a los botones existentes en la interfaz
-    this.bindButtons();
+    // Escuchar cualquier clic en la pantalla (Delegación Global de Eventos)
+    document.addEventListener("click", this.handleGlobalClick);
 
-    // 2. Conectar Socket.io original para multijugador
-    this.io = io();
-    this.io.on("connect", () => console.log("Conectado al servidor de Lobby"));
-    this.io.on("room-ready", this.handleRoomReady);
-  }
-
-  private hideModal() {
-    // Oculta el modal de la pantalla (busca por id 'lobby-modal' o por selector)
-    const modal = document.getElementById("lobby-modal") || document.querySelector(".modal-overlay") as HTMLElement;
-    if (modal) {
-      modal.style.display = "none";
+    // Conexión de Socket.io
+    try {
+      this.io = io();
+      this.io.on("connect", () => console.log("Conectado al servidor de Lobby"));
+      this.io.on("room-ready", this.handleRoomReady);
+    } catch (e) {
+      console.warn("Socket.io no pudo conectar:", e);
     }
   }
 
-  private bindButtons() {
-    // Buscar botones por sus IDs actuales o textos
-    const allButtons = Array.from(document.querySelectorAll("button"));
+  // Cierra y elimina cualquier ventana/modal superpuesta
+  private forceCloseModal() {
+    // Ocultar por ID si existe
+    const modalById = document.getElementById("lobby-modal");
+    if (modalById) modalById.style.display = "none";
 
-    // Botón Práctica / Bot / Offline
-    const botBtn = document.getElementById("btn-start-bot") || 
-                   allButtons.find(b => b.innerText.toLowerCase().includes("bot") || b.innerText.toLowerCase().includes("práctica"));
-
-    // Botones de Mesa / Apuestas
-    const betButtons = document.querySelectorAll(".bet-btn");
-
-    if (botBtn) {
-      botBtn.addEventListener("click", () => {
-        this.hideModal();
-        this.handlePlayOffline();
-      });
-    }
-
-    betButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        this.hideModal();
-        this.handleCreateRoom();
-      });
+    // Ocultar cualquier div con opacidad u overlay que esté tapando la pantalla
+    const overlays = document.querySelectorAll("div");
+    overlays.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      if (style.position === "fixed" || style.position === "absolute") {
+        if (style.zIndex === "100" || style.zIndex === "10000" || el.innerText.includes("Entrar a una Mesa")) {
+          el.style.display = "none";
+        }
+      }
     });
-
-    // Soporte para botones originales si existen en el HTML
-    this.playOfflineButton = document.getElementById("play-offline");
-    this.createRoomButton = document.getElementById("create-room");
-    this.joinRoomButton = document.getElementById("join-room");
-
-    if (this.playOfflineButton) {
-      this.playOfflineButton.addEventListener("click", () => {
-        this.hideModal();
-        this.handlePlayOffline();
-      });
-    }
-    if (this.createRoomButton) {
-      this.createRoomButton.addEventListener("click", () => {
-        this.hideModal();
-        this.handleCreateRoom();
-      });
-    }
-    if (this.joinRoomButton) {
-      this.joinRoomButton.addEventListener("click", () => {
-        this.hideModal();
-        this.handleJoinRoom();
-      });
-    }
   }
+
+  private handleGlobalClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target || target.tagName !== "BUTTON") return;
+
+    const btnText = target.innerText.toLowerCase();
+
+    // 1. Botón Práctica / Bot
+    if (btnText.includes("bot") || btnText.includes("práctica") || target.id === "play-offline") {
+      e.preventDefault();
+      this.forceCloseModal();
+      this.handlePlayOffline();
+      return;
+    }
+
+    // 2. Botones de Mesas / Apuestas / Crear Sala
+    if (btnText.includes("mesa") || btnText.includes("crear") || target.classList.contains("bet-btn") || target.id === "create-room") {
+      e.preventDefault();
+      this.forceCloseModal();
+      this.handleCreateRoom();
+      return;
+    }
+
+    // 3. Botón Unirse a Sala
+    if (btnText.includes("unirse") || target.id === "join-room") {
+      e.preventDefault();
+      this.forceCloseModal();
+      this.handleJoinRoom();
+      return;
+    }
+  };
 
   handlePlayOffline = () => {
-    this.hideModal();
+    console.log("Iniciando modo Offline / Bot...");
+    this.forceCloseModal();
+
     if (this.room) {
       Runtime.deactivate(this.room);
       this.room = null;
     }
+    
+    // Activar juego local
     Runtime.activate((this.room = new MainOffline()), {});
   };
 
   handleCreateRoom = () => {
-    this.hideModal();
-    this.io.emit("create-room");
+    console.log("Creando sala online...");
+    this.forceCloseModal();
+    if (this.io) {
+      this.io.emit("create-room");
+    } else {
+      // Si falla socket, arranca offline como respaldo
+      this.handlePlayOffline();
+    }
   };
 
   handleRoomReady = ({ id }: { id: string }) => {
-    this.hideModal();
+    this.forceCloseModal();
+
     if (this.room) {
       Runtime.deactivate(this.room);
       this.room = null;
@@ -126,7 +128,7 @@ export class LobbyClient extends Middleware<LobbyClientContext> {
       return;
     }
 
-    this.hideModal();
+    this.forceCloseModal();
     localStorage.setItem("eight-ball-room", id);
     Runtime.activate((this.room = new MainClient()), {
       room: id,
