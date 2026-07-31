@@ -1,28 +1,115 @@
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport"
-    content="user-scalable=no, width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-  <link rel="stylesheet" href="./style.css">
-  <meta name="theme-color" content="#323130" />
-  <meta name="color-scheme" content="dark" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8 Ball Pool Pro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background-color: #121212; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; overflow: hidden; }
+
+    /* Canvas principal */
+    #game-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+    canvas { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+
+    /* HUD Superior: Perfiles y Fichas */
+    #hud {
+      position: absolute; top: 15px; width: 90%; max-width: 800px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(20, 20, 20, 0.85); padding: 10px 20px; border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+    }
+    .player-profile { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; border: 2px solid #f39c12; }
+    .bet-container { background: #27ae60; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 14px; box-shadow: 0 0 10px rgba(39,174,96,0.4); }
+
+    /* Barra de Potencia (Izquierda) */
+    #power-bar-container {
+      position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+      height: 250px; width: 35px; background: rgba(0,0,0,0.6);
+      border-radius: 20px; border: 2px solid #444; padding: 5px;
+      display: flex; flex-direction: column-reverse; align-items: center;
+    }
+    #power-bar-fill { width: 100%; height: 0%; background: linear-gradient(to top, #f1c40f, #e74c3c); border-radius: 15px; transition: height 0.05s linear; }
+
+    /* Rueda / Slider de Ajuste Milimétrico (Derecha) */
+    #fine-tune-container {
+      position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      background: rgba(0,0,0,0.6); padding: 15px 10px; border-radius: 25px; border: 1px solid #444;
+    }
+    .tune-btn { background: #333; color: #fff; border: 1px solid #555; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+    .tune-btn:active { background: #555; }
+
+    /* Menú Modal de Selección de Apuestas */
+    #lobby-modal {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; z-index: 100;
+    }
+    .modal-card { background: #1e1e1e; padding: 25px; border-radius: 15px; width: 320px; text-align: center; border: 1px solid #333; }
+    .bet-option { background: #2c3e50; margin: 10px 0; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+    .bet-option:hover { background: #34495e; border: 1px solid #f39c12; }
+    select, button { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; margin-top: 8px; cursor: pointer; }
+    .btn-primary { background: #f39c12; color: #000; }
+  </style>
 </head>
-
 <body>
-  <svg id="polymatic-eight-ball" class="terminal"></svg>
-  <div style="position: absolute; top: 0.5em; left: 0.5em;">
-    <div id="game-status"></div>
-    <div id="room-status"></div>
-  </div>
-  <div style="position: absolute; bottom: 0.5em; left: 0.5em;">
-    <button id="play-offline">Play Offline</button>
-    <button id="create-room">Create Room</button>
-    <button id="join-room">Join Room</button>  
-    <!-- <button id="leave-room">Leave Room</button> -->
-  </div>
-  <script type="module" src="./src/client"></script>
-</body>
 
+  <div id="game-container">
+    <!-- HUD Superior -->
+    <div id="hud">
+      <div class="player-profile">
+        <div class="avatar"></div>
+        <div>
+          <div id="player-name">Tú</div>
+          <small id="player-chips" style="color: #f1c40f;">1,000 Fichas</small>
+        </div>
+      </div>
+      <div class="bet-container">Bote: $<span id="current-pot">0</span></div>
+      <div class="player-profile">
+        <div style="text-align: right;">
+          <div id="opponent-name">Esperando...</div>
+          <small id="opponent-status" style="color: #aaa;">Buscando rival</small>
+        </div>
+        <div class="avatar" style="border-color: #e74c3c;"></div>
+      </div>
+    </div>
+
+    <!-- Barra de Potencia (Izquierda) -->
+    <div id="power-bar-container">
+      <div id="power-bar-fill"></div>
+    </div>
+
+    <!-- Controles Milimétricos (Derecha) -->
+    <div id="fine-tune-container">
+      <button class="tune-btn" id="btn-tune-up">▲</button>
+      <span style="font-size: 10px; color: #aaa;">AJUSTE</span>
+      <button class="tune-btn" id="btn-tune-down">▼</button>
+    </div>
+
+    <!-- Modal de Lobby / Apuestas -->
+    <div id="lobby-modal">
+      <div class="modal-card">
+        <h2>Entrar a una Mesa</h2>
+        <p style="color: #888; font-size: 13px; margin-bottom: 15px;">Selecciona el valor de la apuesta</p>
+        
+        <div class="bet-option" onclick="selectBet(100)">Mesa Principiante - $100</div>
+        <div class="bet-option" onclick="selectBet(500)">Mesa Pro - $500</div>
+        <div class="bet-option" onclick="selectBet(2000)">Mesa Elite - $2,000</div>
+
+        <hr style="border: 0.5px solid #333; margin: 15px 0;">
+
+        <label style="font-size: 12px; color: #aaa;">¿No hay jugadores? Jugar contra Bot:</label>
+        <select id="bot-difficulty">
+          <option value="medium">Dificultad: Media</option>
+          <option value="hard">Dificultad: Difícil</option>
+        </select>
+        <button class="btn-primary" onclick="startBotGame()">Práctica vs Bot</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
 </html>
