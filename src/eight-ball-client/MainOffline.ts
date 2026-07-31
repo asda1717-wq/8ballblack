@@ -1,5 +1,4 @@
 import { Middleware } from "polymatic";
-
 import { PoolTable } from "../eight-ball/PoolTable";
 import { EightBall1P } from "../eight-ball/EightBall1P";
 import { Terminal } from "./Terminal";
@@ -9,10 +8,8 @@ import { Physics } from "../eight-ball/Physics";
 import { type BilliardContext } from "../eight-ball/BilliardContext";
 import { StatusOffline } from "./StatusOffline";
 import { Rack } from "../eight-ball/Rack";
+import { AdvancedControls } from "./AdvancedControls";
 
-/**
- * Main class for the offline billiard game.
- */
 export class MainOffline extends Middleware<BilliardContext> {
   constructor() {
     super();
@@ -22,6 +19,7 @@ export class MainOffline extends Middleware<BilliardContext> {
     this.use(new EightBall1P());
     this.use(new Physics());
     this.use(new CueShot());
+    this.use(new AdvancedControls());
     this.use(new Terminal());
     this.use(new StatusOffline());
     this.on("activate", this.handleActivate);
