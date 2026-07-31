@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>8 Ball Pool Pro</title>
+  <!-- Estilos del juego (bolas, mesa, etc.) -->
+  <link rel="stylesheet" href="/style.css" />
   <style>
+    /* Reset y estilos base (mantenemos los tuyos) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -98,10 +101,28 @@
       border-radius: 10px;
       font-size: 1.1rem;
       color: #aaa;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
     }
-    .status .highlight {
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status-label {
+      font-weight: bold;
+      color: #888;
+      min-width: 100px;
+    }
+    .status-value {
       color: #4ecdc4;
       font-weight: bold;
+      word-break: break-all;
+    }
+    .status-value.error {
+      color: #e94560;
     }
     /* Contenedor del juego */
     #game {
@@ -118,15 +139,25 @@
     #game.active {
       display: block;
     }
+    /* El SVG del juego ocupa todo el contenedor */
+    #game .terminal {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
     @media (max-width: 768px) {
       .lobby h1 { font-size: 2rem; }
       .btn { padding: 12px 20px; font-size: 0.9rem; }
       .button-group { gap: 10px; }
+      .status { font-size: 0.9rem; }
+      .status-label { min-width: 70px; }
     }
   </style>
 </head>
 <body>
   <div id="app">
+    <!-- LOBBY -->
     <div class="lobby" id="lobby">
       <h1>🎱 8 Ball Pool Pro</h1>
       <p class="subtitle">Juega con amigos o contra la máquina</p>
@@ -137,12 +168,33 @@
         <button class="btn btn-success" id="create-room">🆕 Crear Sala</button>
         <button class="btn btn-warning" id="join-room">🔗 Unirse a Sala</button>
       </div>
+      <!-- Estado del lobby (actualizado por LobbyClient) -->
       <div class="status" id="status">
-        Estado: <span class="highlight" id="status-text">Esperando...</span>
+        <div class="status-line">
+          <span class="status-label">Lobby:</span>
+          <span class="status-value" id="status-text">Esperando...</span>
+        </div>
+        <!-- Estado del juego offline (actualizado por StatusOffline) -->
+        <div class="status-line">
+          <span class="status-label">Partida:</span>
+          <span class="status-value" id="game-status">—</span>
+        </div>
+        <!-- Estado de la sala online (actualizado por StatusOnline) -->
+        <div class="status-line">
+          <span class="status-label">Sala:</span>
+          <span class="status-value" id="room-status">—</span>
+        </div>
       </div>
     </div>
-    <div id="game"></div>
+
+    <!-- CONTENEDOR DEL JUEGO -->
+    <div id="game">
+      <!-- El Terminal busca este SVG por ID -->
+      <svg id="polymatic-eight-ball" class="terminal"></svg>
+    </div>
   </div>
+
+  <!-- Punto de entrada del cliente -->
   <script type="module" src="/src/client.ts"></script>
 </body>
 </html>
