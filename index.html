@@ -91,8 +91,6 @@
     .btn-success:hover { background: #45b7aa; }
     .btn-warning { background: #f8b500; color: #1a1a2e; }
     .btn-warning:hover { background: #e0a300; }
-    .btn-secondary { background: #533483; }
-    .btn-secondary:hover { background: #452a6b; }
     .status {
       margin-top: 20px;
       padding: 15px;
@@ -115,12 +113,11 @@
       position: relative;
       overflow: hidden;
       border: 2px solid #0f3460;
-      display: none; /* Oculto hasta que comience el juego */
+      display: none;
     }
     #game.active {
       display: block;
     }
-    /* Responsive */
     @media (max-width: 768px) {
       .lobby h1 { font-size: 2rem; }
       .btn { padding: 12px 20px; font-size: 0.9rem; }
@@ -130,7 +127,6 @@
 </head>
 <body>
   <div id="app">
-    <!-- LOBBY -->
     <div class="lobby" id="lobby">
       <h1>🎱 8 Ball Pool Pro</h1>
       <p class="subtitle">Juega con amigos o contra la máquina</p>
@@ -145,32 +141,7 @@
         Estado: <span class="highlight" id="status-text">Esperando...</span>
       </div>
     </div>
-    <!-- CONTENEDOR DEL JUEGO -->
     <div id="game"></div>
-  </div>
-  <script type="module" src="/src/client.ts"></script>
-</body>
-</html>      .button-group { gap: 10px; }
-    }
-  </style>
-</head>
-<body>
-  <div id="app">
-    <div class="lobby" id="lobby">
-      <h1>🎱 8 Ball Pool Pro</h1>
-      <p class="subtitle">Juega con amigos o contra la máquina</p>
-      <div class="balance">💰 <span id="balance">1,000</span> Fichas</div>
-      <div class="pot">🏆 Bote: <span id="pot">$0</span></div>
-      <div class="button-group">
-        <button class="btn btn-primary" id="play-offline">🎮 Jugar Offline</button>
-        <button class="btn btn-success" id="create-room">🆕 Crear Sala</button>
-        <button class="btn btn-warning" id="join-room">🔗 Unirse a Sala</button>
-      </div>
-      <div class="status" id="status">
-        Estado: <span class="highlight" id="status-text">Esperando...</span>
-      </div>
-    </div>
-    <div id="game-container"></div>
   </div>
   <script type="module" src="/src/client.ts"></script>
 </body>
