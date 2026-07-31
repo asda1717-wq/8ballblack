@@ -1,21 +1,16 @@
 import { Dataset, Driver, Memo, Middleware } from "polymatic";
-
 import { CueStick, Ball, Pocket, Rail, Table, type BilliardContext } from "../eight-ball/BilliardContext";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-
 const STROKE_WIDTH = 0.006 / 2;
 
-/**
- * Implements rendering and collecting user-input
- */
 export class Terminal extends Middleware<BilliardContext> {
   container: SVGGElement;
-
   scorecardGroup: SVGGElement;
   ballsGroup: SVGGElement;
   tableGroup: SVGGElement;
   cueGroup: SVGGElement;
+  aimLineGroup: SVGGElement;
 
   constructor() {
     super();
@@ -27,22 +22,21 @@ export class Terminal extends Middleware<BilliardContext> {
     this.dataset.addDriver(this.tableDriver);
     this.dataset.addDriver(this.railDriver);
     this.dataset.addDriver(this.pocketDriver);
-
     this.dataset.addDriver(this.ballDriver);
-
     this.dataset.addDriver(this.cueDriver);
 
     this.scorecardGroup = document.createElementNS(SVG_NS, "g");
     this.ballsGroup = document.createElementNS(SVG_NS, "g");
     this.tableGroup = document.createElementNS(SVG_NS, "g");
     this.cueGroup = document.createElementNS(SVG_NS, "g");
+    this.aimLineGroup = document.createElementNS(SVG_NS, "g");
 
     this.container = document.createElementNS(SVG_NS, "g");
     this.container.classList.add("billiards");
-
     this.container.appendChild(this.tableGroup);
     this.container.appendChild(this.ballsGroup);
     this.container.appendChild(this.scorecardGroup);
+    this.container.appendChild(this.aimLineGroup);
     this.container.appendChild(this.cueGroup);
   }
 
@@ -100,7 +94,6 @@ export class Terminal extends Middleware<BilliardContext> {
   };
 
   pointerDown = false;
-
   handlePointerDown = (event: PointerEvent) => {
     this.pointerDown = true;
     const point = this.getSvgPoint(event);
@@ -109,7 +102,6 @@ export class Terminal extends Middleware<BilliardContext> {
   };
 
   handlePointerMove = (event: PointerEvent) => {
-    // if (!this.context.next) return;
     if (!this.pointerDown) return;
     event.preventDefault();
     const point = this.getSvgPoint(event);
@@ -134,6 +126,31 @@ export class Terminal extends Middleware<BilliardContext> {
       ...this.context.balls,
       this.context.cue,
     ]);
+
+    // --- Línea de mira ---
+    while (this.aimLineGroup.firstChild) {
+      this.aimLineGroup.removeChild(this.aimLineGroup.firstChild);
+    }
+    const cue = this.context.cue;
+    if (cue && cue.ball) {
+      const line = document.createElementNS(SVG_NS, "line");
+      const dx = cue.end.x - cue.start.x;
+      const dy = cue.end.y - cue.start.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 0.01) {
+        const unitX = dx / dist;
+        const unitY = dy / dist;
+        const extend = 5;
+        line.setAttribute("x1", String(cue.start.x));
+        line.setAttribute("y1", String(cue.start.y));
+        line.setAttribute("x2", String(cue.start.x + unitX * extend));
+        line.setAttribute("y2", String(cue.start.y + unitY * extend));
+        line.setAttribute("stroke", "rgba(255,255,255,0.3)");
+        line.setAttribute("stroke-width", String(0.01));
+        line.setAttribute("stroke-dasharray", "0.05, 0.05");
+        this.aimLineGroup.appendChild(line);
+      }
+    }
   };
 
   ballDriver = Driver.create<Ball, Element>({
@@ -150,9 +167,7 @@ export class Terminal extends Middleware<BilliardContext> {
       element.setAttribute("cx", String(data.position.x));
       element.setAttribute("cy", String(data.position.y));
     },
-    exit: (data, element) => {
-      element.remove();
-    },
+    exit: (data, element) => { element.remove(); },
   });
 
   tableDriver = Driver.create<Table, Element>({
@@ -167,14 +182,11 @@ export class Terminal extends Middleware<BilliardContext> {
       element.setAttribute("height", String(h + STROKE_WIDTH * 2));
       element.classList.add("table");
       this.tableGroup.appendChild(element);
-
       this.handleWindowResize();
       return element;
     },
     update: (data, element) => {},
-    exit: (data, element) => {
-      element.remove();
-    },
+    exit: (data, element) => { element.remove(); },
   });
 
   railDriver = Driver.create<Rail, Element>({
@@ -187,9 +199,7 @@ export class Terminal extends Middleware<BilliardContext> {
       return element;
     },
     update: (data, element) => {},
-    exit: (data, element) => {
-      element.remove();
-    },
+    exit: (data, element) => { element.remove(); },
   });
 
   pocketDriver = Driver.create<Pocket, Element>({
@@ -204,9 +214,7 @@ export class Terminal extends Middleware<BilliardContext> {
       return element;
     },
     update: (data, element) => {},
-    exit: (data, element) => {
-      element.remove();
-    },
+    exit: (data, element) => { element.remove(); },
   });
 
   cueDriver = Driver.create<CueStick, Element>({
@@ -219,13 +227,11 @@ export class Terminal extends Middleware<BilliardContext> {
     },
     update: (data, element) => {
       element.setAttribute("x1", String(data.start.x));
-      element.setAttribute("y1", String(data.start.y));
       element.setAttribute("x2", String(data.end.x));
+      element.setAttribute("y1", String(data.start.y));
       element.setAttribute("y2", String(data.end.y));
     },
-    exit: (data, element) => {
-      element.remove();
-    },
+    exit: (data, element) => { element.remove(); },
   });
 
   dataset = Dataset.create<Ball | Rail | Pocket | CueStick | Table>({
